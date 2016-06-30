@@ -5,3 +5,7 @@ authors = ["Dan Rammer <hamersaw@gmail.com>"]
 
 [dependencies]
 byteorder = "*"
+
+[[example]]
+name = "main"
+path = "examples/main.rs"
