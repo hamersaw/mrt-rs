@@ -2,7 +2,8 @@ extern crate rustmrt;
 
 use std::fs::File;
 
-use rustmrt::{MRTScanner, MRTType};
+use rustmrt::MRTScanner;
+use rustmrt::mrt_message::MRTSubType;
 
 fn main() {
     //open reader
@@ -19,10 +20,27 @@ fn main() {
             Err(e) => panic!("{}", e),
         };
 
-        match mrt_message.mrt_type {
-            MRTType::BGP4MP => {
-                
+        match mrt_message.mrt_subtype {
+            MRTSubType::Bgp4mpStateChange => println!("state change"),
+            MRTSubType::Bgp4mpMessage => {
+                let msg = match mrt_message.parse_bgp4mp_message() {
+                    Ok(msg) => msg,
+                    Err(e) => panic!("{}", e),
+                };
+
+                println!("bgp4mp message\n\tpeer_as_number:{}\n\tlocal_as_number:{}", msg.peer_as_number, msg.local_as_number); 
             },
+            MRTSubType::Bgp4mpMessageAs4 => {
+                let msg = match mrt_message.parse_bgp4mp_message_as4() {
+                    Ok(msg) => msg,
+                    Err(e) => panic!("{}", e),
+                };
+
+                println!("bgp4mp message as4\n\tpeer_as_number:{}\n\tlocal_as_number:{}", msg.peer_as_number, msg.local_as_number); 
+            },
+            MRTSubType::Bgp4mpStateChangeAs4 => println!("state change as4"),
+            MRTSubType::Bgp4mpMessageLocal => println!("message local"),
+            MRTSubType::Bgp4mpMessageAs4Local => println!("messgae as4 local"),
             _ => println!("skipping message"),
         }
     }
