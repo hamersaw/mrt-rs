@@ -1,4 +1,4 @@
-use std::io::{BufReader, Error, ErrorKind, Read};
+use std::io::{BufReader, Cursor, Error, ErrorKind, Read};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
@@ -89,16 +89,22 @@ impl MRTMessage {
         }
     }
 
-    pub fn parse_bgp4mp_message(&self) -> Result<BGP4MPMessage, Error> {
+    pub fn parse_bgp4mp_message<'a>(&'a self) -> Result<BGP4MPMessage, Error> {
         match self.mrt_subtype {
-            MRTSubType::Bgp4mpMessage => BGP4MPMessage::parse(&self.buffer),
+            MRTSubType::Bgp4mpMessage => {
+                let mut cursor: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
+                BGP4MPMessage::parse(&mut cursor)
+            },
             _ => return Err(Error::new(ErrorKind::Other, "incorrect subtype on mrt message")),
         }
     }
 
     pub fn parse_bgp4mp_message_as4(&self) -> Result<BGP4MPMessageAs4, Error> {
         match self.mrt_subtype {
-            MRTSubType::Bgp4mpMessageAs4 => BGP4MPMessageAs4::parse(&self.buffer),
+            MRTSubType::Bgp4mpMessageAs4 => {
+                let mut cursor: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
+                BGP4MPMessageAs4::parse(&mut cursor)
+            },
             _ => return Err(Error::new(ErrorKind::Other, "incorrect subtype on mrt message")),
         }
     }
