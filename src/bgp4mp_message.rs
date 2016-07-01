@@ -31,22 +31,22 @@ pub struct BGP4MPMessage {
 
 impl BGP4MPMessage {
     //pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPMessage, Error> {
-    pub fn parse(cursor: &mut Box<Read>) -> Result<BGP4MPMessage, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPMessage, Error> {
         //create cursor and parse header information
-        let peer_as_number = try!(cursor.read_u16::<BigEndian>());
-        let local_as_number = try!(cursor.read_u16::<BigEndian>());
-        let interface_index = try!(cursor.read_u16::<BigEndian>());
+        let peer_as_number = try!(reader.read_u16::<BigEndian>());
+        let local_as_number = try!(reader.read_u16::<BigEndian>());
+        let interface_index = try!(reader.read_u16::<BigEndian>());
 
         //parse ip addresses
-        let address_family_u16 = try!(cursor.read_u16::<BigEndian>());
-        let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match address_family_u16 {
+        let _address_family = try!(reader.read_u16::<BigEndian>());
+        let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match _address_family {
             1 => (AddressFamily::IpV4, parse_ipv4_address),
             2 => (AddressFamily::IpV6, parse_ipv6_address),
-            _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", address_family_u16))),
+            _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", _address_family))),
         };
 
-        let peer_ip_address = try!(parse_ip_address(cursor));
-        let local_ip_address = try!(parse_ip_address(cursor));
+        let peer_ip_address = try!(parse_ip_address(reader));
+        let local_ip_address = try!(parse_ip_address(reader));
 
         //create message
         Ok (
@@ -81,11 +81,11 @@ impl BGP4MPMessageAs4{
         let interface_index = try!(cursor.read_u16::<BigEndian>());
 
         //parse ip addresses
-        let address_family_u16 = try!(cursor.read_u16::<BigEndian>());
-        let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match address_family_u16 {
+        let _address_family = try!(cursor.read_u16::<BigEndian>());
+        let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match _address_family {
             1 => (AddressFamily::IpV4, parse_ipv4_address),
             2 => (AddressFamily::IpV6, parse_ipv6_address),
-            _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", address_family_u16))),
+            _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", _address_family))),
         };
 
         let peer_ip_address = try!(parse_ip_address(cursor));

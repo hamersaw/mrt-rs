@@ -37,24 +37,24 @@ impl MRTMessage {
     pub fn parse(reader: &mut BufReader<Box<Read>>) -> Result<MRTMessage, Error> {
         //read header information
         let timestamp = try!(reader.read_u32::<BigEndian>());
-        let mrt_type_u16 = try!(reader.read_u16::<BigEndian>());
-        let mrt_subtype_u16 = try!(reader.read_u16::<BigEndian>());
+        let _mrt_type = try!(reader.read_u16::<BigEndian>());
+        let _mrt_subtype = try!(reader.read_u16::<BigEndian>());
 
-        let (mrt_type, mrt_subtype) = match mrt_type_u16 {
+        let (mrt_type, mrt_subtype) = match _mrt_type {
             11 => (MRTType::OspfV2, MRTSubType::Unknown),
             12 => (MRTType::TableDump, MRTSubType::Unknown),
             13 => (MRTType::TableDumpV2, MRTSubType::Unknown),
             16 => {
                 ( 
                     MRTType::Bgp4mp,
-                    match mrt_subtype_u16 {
+                    match _mrt_subtype {
                         0 => MRTSubType::Bgp4mpStateChange,
                         1 => MRTSubType::Bgp4mpMessage,
                         4 => MRTSubType::Bgp4mpMessageAs4,
                         5 => MRTSubType::Bgp4mpStateChangeAs4,
                         6 => MRTSubType::Bgp4mpMessageLocal,
                         7 => MRTSubType::Bgp4mpMessageAs4Local,
-                        _ => return Err(Error::new(ErrorKind::Other, format!("unknown mrt subtype '{}'", mrt_subtype_u16))),
+                        _ => return Err(Error::new(ErrorKind::Other, format!("unknown mrt subtype '{}'", _mrt_subtype))),
                     }
                 )
             },
@@ -63,7 +63,7 @@ impl MRTMessage {
             33 => (MRTType::IsisEt, MRTSubType::Unknown),
             48 => (MRTType::OspfV3, MRTSubType::Unknown),
             49 => (MRTType::OspfV3Et, MRTSubType::Unknown),
-            _ => return Err(Error::new(ErrorKind::Other, format!("unknown mrt type '{}'", mrt_type_u16))),
+            _ => return Err(Error::new(ErrorKind::Other, format!("unknown mrt type '{}'", _mrt_type))),
         };
 
         //read message body
