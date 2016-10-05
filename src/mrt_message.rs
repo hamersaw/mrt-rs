@@ -82,18 +82,18 @@ impl MRTMessage {
         Ok(msg)
     }
 
-    pub fn parse_bgp4mp_state_change(&self) -> Result<BGP4MPStateChange, Error> {
+    /*pub fn parse_bgp4mp_state_change(&self) -> Result<BGP4MPStateChange, Error> {
         match self.mrt_subtype {
             MRTSubType::Bgp4mpStateChange => BGP4MPStateChange::parse(&self.buffer),
             _ => return Err(Error::new(ErrorKind::Other, "incorrect subtype on mrt message")),
         }
-    }
+    }*/
 
     pub fn parse_bgp4mp_message<'a>(&'a self) -> Result<BGP4MPMessage, Error> {
         match self.mrt_subtype {
             MRTSubType::Bgp4mpMessage => {
-                let mut cursor: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
-                BGP4MPMessage::parse(&mut cursor)
+                let mut reader: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
+                BGP4MPMessage::parse(&mut reader)
             },
             _ => return Err(Error::new(ErrorKind::Other, "incorrect subtype on mrt message")),
         }
@@ -102,8 +102,8 @@ impl MRTMessage {
     pub fn parse_bgp4mp_message_as4(&self) -> Result<BGP4MPMessageAs4, Error> {
         match self.mrt_subtype {
             MRTSubType::Bgp4mpMessageAs4 => {
-                let mut cursor: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
-                BGP4MPMessageAs4::parse(&mut cursor)
+                let mut reader: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
+                BGP4MPMessageAs4::parse(&mut reader)
             },
             _ => return Err(Error::new(ErrorKind::Other, "incorrect subtype on mrt message")),
         }
