@@ -3,6 +3,8 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
+use bgp_message::BGPMessage;
+
 pub enum AddressFamily {
     IpV4,
     IpV6,
@@ -27,6 +29,7 @@ pub struct BGP4MPMessage {
     pub address_family : AddressFamily,
     pub peer_ip_address: IpAddr,
     pub local_ip_address: IpAddr,
+    pub bgp_message: BGPMessage,
 }
 
 impl BGP4MPMessage {
@@ -48,6 +51,9 @@ impl BGP4MPMessage {
         let peer_ip_address = try!(parse_ip_address(reader));
         let local_ip_address = try!(parse_ip_address(reader));
 
+        //parse bgp message
+        let bgp_message = try!(BGPMessage::parse(reader));
+
         //create message
         Ok (
             BGP4MPMessage {
@@ -57,6 +63,7 @@ impl BGP4MPMessage {
                 address_family: address_family,
                 peer_ip_address: peer_ip_address,
                 local_ip_address: local_ip_address,
+                bgp_message: bgp_message,
             }
         )
     }
@@ -70,6 +77,7 @@ pub struct BGP4MPMessageAs4 {
     pub address_family : AddressFamily,
     pub peer_ip_address: IpAddr,
     pub local_ip_address: IpAddr,
+    pub bgp_message: BGPMessage,
 }
 
 impl BGP4MPMessageAs4{
@@ -91,6 +99,9 @@ impl BGP4MPMessageAs4{
         let peer_ip_address = try!(parse_ip_address(cursor));
         let local_ip_address = try!(parse_ip_address(cursor));
 
+        //parse bgp message
+        let bgp_message = try!(BGPMessage::parse(cursor));
+
         //create message
         Ok (
             BGP4MPMessageAs4 {
@@ -100,6 +111,7 @@ impl BGP4MPMessageAs4{
                 address_family: address_family,
                 peer_ip_address: peer_ip_address,
                 local_ip_address: local_ip_address,
+                bgp_message: bgp_message,
             }
         )
     }
@@ -149,7 +161,7 @@ fn parse_ipv4_address(cursor: &mut Box<Read>) -> Result<IpAddr, Error> {
 //fn parse_ipv6_address(cursor: &mut Cursor<&Vec<u8>>) -> Result<IpAddr, Error> {
 fn parse_ipv6_address(cursor: &mut Box<Read>) -> Result<IpAddr, Error> {
     let mut buffer = [0u16; 8];
-    for i in 0..7 {
+    for i in 0..8 {
         buffer[i] = try!(cursor.read_u16::<BigEndian>());
     }
     Ok(IpAddr::V6(Ipv6Addr::new(buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7])))

@@ -18,7 +18,7 @@ pub enum BGPType {
 
 impl BGPMessage {
     pub fn parse(reader: &mut Box<Read>) -> Result<BGPMessage, Error> {
-        for _ in 0..15 {
+        for i in 0..16 {
             //read marker
             let marker = try!(reader.read_u8());
             if marker != 255 {
@@ -37,7 +37,7 @@ impl BGPMessage {
             _ => return Err(Error::new(ErrorKind::Other, format!("unknown bgp type '{}'", _bgp_type))),
         };
 
-        let mut buffer = vec![0; length as usize];
+        let mut buffer = vec![0; (length - 16 - 2 - 1) as usize]; //16 byte marker, 2 byte length, 1 byte type
         try!(reader.read_exact(&mut buffer));
 
         //create message
