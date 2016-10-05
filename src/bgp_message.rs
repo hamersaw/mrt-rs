@@ -2,7 +2,7 @@ use std::io::{Cursor, Error, ErrorKind, Read};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use bgp_update::BGPUpdate;
+use bgp_update_message::BGPUpdateMessage;
 
 pub struct BGPMessage {
     pub bgp_type: BGPType,
@@ -49,11 +49,11 @@ impl BGPMessage {
         )
     }
 
-    pub fn parse_update(&self) -> Result<BGPUpdate, Error> {
+    pub fn parse_update_message(&self) -> Result<BGPUpdateMessage, Error> {
         match self.bgp_type {
             BGPType::Update => {
                 let mut reader: Box<Read> = Box::new(Cursor::new(self.buffer.clone()));
-                BGPUpdate::parse(&mut reader)
+                BGPUpdateMessage::parse(&mut reader)
             },
             _ => return Err(Error::new(ErrorKind::Other, "incorrect subtype on mrt message")),
         }

@@ -1,5 +1,6 @@
 pub mod bgp4mp_message;
 pub mod bgp_message;
+pub mod bgp_update_message;
 pub mod mrt_message;
 
 extern crate byteorder;
