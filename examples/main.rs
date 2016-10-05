@@ -7,7 +7,8 @@ use rustmrt::mrt_message::MRTSubType;
 
 fn main() {
     //open reader
-    let file = match File::open("/home/hamersaw/Downloads/updates.20160101.1230") {
+    let file = match File::open("/home/hamersaw/Downloads/route-views.chicago-updates.20160928.0000") {
+    //let file = match File::open("/home/hamersaw/Downloads/updates.20160101.1230") {
     //let file = match File::open("/home/hamersaw/Downloads/updates-201606010014") {
         Ok(file) => file,
         Err(e) => panic!("{}", e),
