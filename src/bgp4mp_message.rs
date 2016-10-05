@@ -33,7 +33,6 @@ pub struct BGP4MPMessage {
 }
 
 impl BGP4MPMessage {
-    //pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPMessage, Error> {
     pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPMessage, Error> {
         //create cursor and parse header information
         let peer_as_number = try!(reader.read_u16::<BigEndian>());
@@ -81,26 +80,25 @@ pub struct BGP4MPMessageAs4 {
 }
 
 impl BGP4MPMessageAs4{
-    //pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPMessageAs4, Error> {
-    pub fn parse(cursor: &mut Box<Read>) -> Result<BGP4MPMessageAs4, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPMessageAs4, Error> {
         //create cursor and parse header information
-        let peer_as_number = try!(cursor.read_u32::<BigEndian>());
-        let local_as_number = try!(cursor.read_u32::<BigEndian>());
-        let interface_index = try!(cursor.read_u16::<BigEndian>());
+        let peer_as_number = try!(reader.read_u32::<BigEndian>());
+        let local_as_number = try!(reader.read_u32::<BigEndian>());
+        let interface_index = try!(reader.read_u16::<BigEndian>());
 
         //parse ip addresses
-        let _address_family = try!(cursor.read_u16::<BigEndian>());
+        let _address_family = try!(reader.read_u16::<BigEndian>());
         let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match _address_family {
             1 => (AddressFamily::IpV4, parse_ipv4_address),
             2 => (AddressFamily::IpV6, parse_ipv6_address),
             _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", _address_family))),
         };
 
-        let peer_ip_address = try!(parse_ip_address(cursor));
-        let local_ip_address = try!(parse_ip_address(cursor));
+        let peer_ip_address = try!(parse_ip_address(reader));
+        let local_ip_address = try!(parse_ip_address(reader));
 
         //parse bgp message
-        let bgp_message = try!(BGPMessage::parse(cursor));
+        let bgp_message = try!(BGPMessage::parse(reader));
 
         //create message
         Ok (
@@ -123,7 +121,7 @@ pub struct BGP4MPStateChangeAs4 {
 }
 
 impl BGP4MPStateChangeAs4 {
-    pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPStateChangeAs4, Error> {
+    pub fn parse(reader: &mut Box<Reader>) -> Result<BGP4MPStateChangeAs4, Error> {
         unimplemented!();
     }
 }
@@ -135,7 +133,7 @@ pub struct BGP4MPMessageLocal {
 }
 
 impl BGP4MPMessageLocal{
-    pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPMessageLocal, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPMessageLocal, Error> {
         unimplemented!();
     }
 }
@@ -146,23 +144,22 @@ pub struct BGP4MPMessageLocalAs4 {
 }
 
 impl BGP4MPMessageLocalAs4{
-    pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPMessageLocalAs4, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPMessageLocalAs4, Error> {
         unimplemented!();
     }
 }
 
 //miscellaneous functions
-fn parse_ipv4_address(cursor: &mut Box<Read>) -> Result<IpAddr, Error> {
+fn parse_ipv4_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
     let mut buffer = [0u8; 4];
-    try!(cursor.read_exact(&mut buffer));
+    try!(reader.read_exact(&mut buffer));
     Ok(IpAddr::V4(Ipv4Addr::new(buffer[0], buffer[1], buffer[2], buffer[3])))
 }
 
-//fn parse_ipv6_address(cursor: &mut Cursor<&Vec<u8>>) -> Result<IpAddr, Error> {
-fn parse_ipv6_address(cursor: &mut Box<Read>) -> Result<IpAddr, Error> {
+fn parse_ipv6_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
     let mut buffer = [0u16; 8];
     for i in 0..8 {
-        buffer[i] = try!(cursor.read_u16::<BigEndian>());
+        buffer[i] = try!(reader.read_u16::<BigEndian>());
     }
     Ok(IpAddr::V6(Ipv6Addr::new(buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7])))
 }
