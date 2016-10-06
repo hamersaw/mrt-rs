@@ -1,4 +1,4 @@
-#rustmrt
+#mrt-rs
 
 #Overview
 A library to parse MRT messages in rust based on RFC 6396

@@ -41,7 +41,7 @@ impl BGPUpdateMessage {
         while total_path_attributes_length > 0 {
             let attribute_flags = try!(reader.read_u8());
             let _attribute_type_code = try!(reader.read_u8());
-            let attribute_type_code = match _attribute_type_code {
+            /*let attribute_type_code = match _attribute_type_code {
                 1 => AttributeTypeCode::Origin,
                 2 => AttributeTypeCode::AsPath,
                 3 => AttributeTypeCode::NextHop,
@@ -50,7 +50,7 @@ impl BGPUpdateMessage {
                 6 => AttributeTypeCode::AtomicAggregate,
                 7 => AttributeTypeCode::Aggregator,
                 _ => return Err(Error::new(ErrorKind::Other, format!("unknown attribute type code '{}'", _attribute_type_code))),
-            };
+            };*/
 
             //TODO parse extended length
 
