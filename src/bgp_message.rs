@@ -18,7 +18,7 @@ pub enum BGPType {
 
 impl BGPMessage {
     pub fn parse(reader: &mut Box<Read>) -> Result<BGPMessage, Error> {
-        for i in 0..16 {
+        for _ in 0..16 {
             //read marker
             let marker = try!(reader.read_u8());
             if marker != 255 {

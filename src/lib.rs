@@ -5,23 +5,40 @@ pub mod mrt_message;
 
 extern crate byteorder;
 
-use std::io::{BufReader, Error, Read};
+use std::io::{Error, Read};
 
+use bgp_message::BGPMessage;
 use mrt_message::MRTMessage;
 
 pub struct MRTScanner {
-    reader: BufReader<Box<Read>>,
+    reader: Box<Read>,
 }
 
 impl MRTScanner {
     pub fn new(reader: Box<Read>) -> MRTScanner {
         MRTScanner {
-            reader: BufReader::new(reader),
+            reader: reader,
         }
     }
 
     pub fn scan(&mut self) -> Result<MRTMessage, Error> {
         MRTMessage::parse(&mut self.reader)
+    }
+}
+
+pub struct BGPScanner {
+    reader: Box<Read>,
+}
+
+impl BGPScanner {
+    pub fn new(reader: Box<Read>) -> BGPScanner {
+        BGPScanner {
+            reader: reader,
+        }
+    }
+
+    pub fn scan(&mut self) -> Result<BGPMessage, Error> {
+        BGPMessage::parse(&mut self.reader)
     }
 }
 

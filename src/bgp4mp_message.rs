@@ -16,7 +16,7 @@ pub struct BGP4MPStateChange{
 }
 
 impl BGP4MPStateChange{
-    pub fn parse(buffer: &Vec<u8>) -> Result<BGP4MPStateChange, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPStateChange, Error> {
         unimplemented!();
     }
 }
@@ -121,7 +121,7 @@ pub struct BGP4MPStateChangeAs4 {
 }
 
 impl BGP4MPStateChangeAs4 {
-    pub fn parse(reader: &mut Box<Reader>) -> Result<BGP4MPStateChangeAs4, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPStateChangeAs4, Error> {
         unimplemented!();
     }
 }

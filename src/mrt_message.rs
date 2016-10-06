@@ -1,8 +1,8 @@
-use std::io::{BufReader, Cursor, Error, ErrorKind, Read};
+use std::io::{Cursor, Error, ErrorKind, Read};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use bgp4mp_message::{BGP4MPStateChange, BGP4MPMessage, BGP4MPMessageAs4};
+use bgp4mp_message::{BGP4MPMessage, BGP4MPMessageAs4};
 
 pub struct MRTMessage {
     pub timestamp: u32,
@@ -34,7 +34,7 @@ pub enum MRTSubType {
 }
 
 impl MRTMessage {
-    pub fn parse(reader: &mut BufReader<Box<Read>>) -> Result<MRTMessage, Error> {
+    pub fn parse(reader: &mut Box<Read>) -> Result<MRTMessage, Error> {
         //read header information
         let timestamp = try!(reader.read_u32::<BigEndian>());
         let _mrt_type = try!(reader.read_u16::<BigEndian>());

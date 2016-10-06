@@ -36,7 +36,13 @@ fn main() {
 
                 match msg.bgp_message.bgp_type {
                     BGPType::Open => println!("\tOPEN MESSAGE"),
-                    BGPType::Update => println!("\tUPDATE MESSAGE"),
+                    BGPType::Update => {
+                        println!("\tUPDATE MESSAGE");
+                        let bgp_msg = match msg.bgp_message.parse_update_message() {
+                            Ok(bgp_msg) => bgp_msg,
+                            Err(e) => panic!("{}", e),
+                        };
+                    },
                     BGPType::Modification => println!("\tMODIFICATION MESSAGE"),
                     BGPType::KeepAlive => println!("\tKEEP ALIVE MESSAGE"),
                 }
@@ -51,7 +57,13 @@ fn main() {
 
                 match msg.bgp_message.bgp_type {
                     BGPType::Open => println!("\tOPEN MESSAGE"),
-                    BGPType::Update => println!("\tUPDATE MESSAGE"),
+                    BGPType::Update => {
+                        println!("\tUPDATE MESSAGE");
+                        let bgp_msg = match msg.bgp_message.parse_update_message() {
+                            Ok(bgp_msg) => bgp_msg,
+                            Err(e) => panic!("{}", e),
+                        };
+                    },
                     BGPType::Modification => println!("\tMODIFICATION MESSAGE"),
                     BGPType::KeepAlive => println!("\tKEEP ALIVE MESSAGE"),
                 }
