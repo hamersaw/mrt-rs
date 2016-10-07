@@ -31,6 +31,7 @@ fn main() {
                     BGPType::Open => println!("\tOPEN MESSAGE"),
                     BGPType::Update => {
                         let bgp_msg = msg.bgp_message.parse_update_message().unwrap();
+                        println!("\t\twithdrawn_routes: {:?}\n\t\tnlri: {:?}", bgp_msg.withdrawn_routes, bgp_msg.network_layer_reachability_information);
                     },
                     BGPType::Modification => println!("\tMODIFICATION MESSAGE"),
                     BGPType::KeepAlive => println!("\tKEEP ALIVE MESSAGE"),
@@ -44,6 +45,7 @@ fn main() {
                     BGPType::Open => println!("\tOPEN MESSAGE"),
                     BGPType::Update => {
                         let bgp_msg = msg.bgp_message.parse_update_message().unwrap();
+                        println!("\t\twithdrawn_routes: {:?}\n\t\tnlri: {:?}", bgp_msg.withdrawn_routes, bgp_msg.network_layer_reachability_information);
                     },
                     BGPType::Modification => println!("\tMODIFICATION MESSAGE"),
                     BGPType::KeepAlive => println!("\tKEEP ALIVE MESSAGE"),

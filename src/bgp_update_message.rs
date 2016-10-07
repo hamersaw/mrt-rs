@@ -1,7 +1,9 @@
 use std::io::{Error, ErrorKind, Read};
-use std::net::IpAddr;
+use std::net::{IpAddr, Ipv4Addr};
 
 use byteorder::{BigEndian, ReadBytesExt};
+
+use super::Prefix;
 
 #[derive(Debug)]
 pub enum AttributeTypeCode {
@@ -22,6 +24,8 @@ pub enum Origin {
 }
 
 pub struct BGPUpdateMessage {
+    pub withdrawn_routes: Option<Vec<Prefix>>,
+    pub network_layer_reachability_information: Option<Vec<Prefix>>,
     pub origin: Option<Origin>,
     pub next_hop: Option<IpAddr>,
     pub multi_exit_disc: Option<u32>,
@@ -33,26 +37,8 @@ pub struct BGPUpdateMessage {
 
 impl BGPUpdateMessage {
     pub fn parse(reader: &mut Box<Read>) -> Result<BGPUpdateMessage, Error> {
-        //read withdrawn routes
-        let mut withdrawn_routes_length = try!(reader.read_u16::<BigEndian>());
-        while withdrawn_routes_length > 0 {
-            let length = try!(reader.read_u8());
-            let mut bytes = length / 8;
-            if length % 8 != 0 {
-                bytes += 1;
-            }
-
-            //TODO parse ip address            
-            for _ in 0..bytes {
-                let _ = try!(reader.read_u8());
-            }
-
-            withdrawn_routes_length -= (bytes + 1) as u16;
-        }
-
-        //read total path attributes
-        let mut total_path_attributes_length = try!(reader.read_u16::<BigEndian>());
-
+        let mut withdrawn_routes: Option<Vec<Prefix>> = None;
+        let mut network_layer_reachability_information: Option<Vec<Prefix>> = None;
         let mut origin: Option<Origin> = None;
         let mut next_hop: Option<IpAddr> = None;
         let mut multi_exit_disc: Option<u32> = None;
@@ -60,9 +46,56 @@ impl BGPUpdateMessage {
         let mut atomic_aggregate: Option<bool> = None;
         let mut aggregator: Option<(u32, IpAddr)> = None;
 
+        //read withdrawn routes
+        let mut withdrawn_routes_length = try!(reader.read_u16::<BigEndian>());
+        let mut withdrawn_routes_vec = vec!();
+        while withdrawn_routes_length > 0 {
+            let length = try!(reader.read_u8());
+            let mut byte_count = length / 8;
+            if length % 8 != 0 {
+                byte_count += 1;
+            }
+
+            //parse ip address            
+            let mut bytes = vec!();
+            for _ in 0..byte_count - 1 {
+                bytes.push(try!(reader.read_u8()));
+            }
+
+            if length % 8 == 0 {
+                bytes.push(try!(reader.read_u8()));
+            } else {
+                let mut index_value = 128;
+                let mut and_value = 0;
+                for _ in 0..(length % 8) {
+                    and_value += index_value;
+                    index_value /= 2;
+                }
+
+                bytes.push(try!(reader.read_u8()) & and_value);
+            }
+
+            while bytes.len() < 4 {
+                bytes.push(0);
+            }
+
+            let ip_addr = IpAddr::V4(Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]));
+
+            withdrawn_routes_vec.push(Prefix::new(ip_addr, length));
+            withdrawn_routes_length -= (byte_count + 1) as u16;
+        }
+
+        if withdrawn_routes_vec.len() != 0 {
+            withdrawn_routes = Some(withdrawn_routes_vec);
+        }
+
+        //read total path attributes
+        let mut total_path_attributes_length = try!(reader.read_u16::<BigEndian>());
         if total_path_attributes_length == 0 {
             return Ok (
                 BGPUpdateMessage {
+                    withdrawn_routes: withdrawn_routes,
+                    network_layer_reachability_information: network_layer_reachability_information,
                     origin: origin,
                     next_hop: next_hop,
                     multi_exit_disc: multi_exit_disc,
@@ -95,7 +128,6 @@ impl BGPUpdateMessage {
                 _ => AttributeTypeCode::Unknown,
             };
 
-            println!("{:?} {} {} {} {}", attribute_type_code, optional_bit, transitive_bit, partial_bit, extended_length_bit);
             //parse out attribute_length
             let (attribute_length, length_bytes) = match extended_length_bit {
                 true => (try!(reader.read_u16::<BigEndian>()), 2),
@@ -151,24 +183,58 @@ impl BGPUpdateMessage {
         }
 
         //read network layer reachability information
-        /*let mut network_layer_reachability_length = try!(reader.read_u16::<BigEndian>());
-        while network_layer_reachability_length > 0 {
-            let length = try!(reader.read_u8());
-            let mut bytes = length / 8;
+        let mut vec = vec!();
+        loop {
+            let length = match reader.read_u8() {
+                Ok(length) => length,
+                Err(e) => {
+                    match e.kind() {
+                        ErrorKind::UnexpectedEof => break,
+                        _ => return Err(e),
+                    }
+                }
+            };
+
+            let mut byte_count = length / 8;
             if length % 8 != 0 {
-                bytes += 1;
+                byte_count += 1;
             }
 
-            //TODO parse ip address            
-            for _ in 0..bytes {
-                let _ = try!(reader.read_u8());
+            //parse ip address            
+            let mut bytes = vec!();
+            for _ in 0..byte_count - 1 {
+                bytes.push(try!(reader.read_u8()));
             }
 
-            network_layer_reachability_length -= (bytes + 1) as u16;
-        }*/
+            if length % 8 == 0 {
+                bytes.push(try!(reader.read_u8()));
+            } else {
+                let mut index_value = 128;
+                let mut and_value = 0;
+                for _ in 0..(length % 8) {
+                    and_value += index_value;
+                    index_value /= 2;
+                }
+
+                bytes.push(try!(reader.read_u8()) & and_value);
+            }
+
+            while bytes.len() < 4 {
+                bytes.push(0);
+            }
+
+            let ip_addr = IpAddr::V4(Ipv4Addr::new(bytes[0], bytes[1], bytes[2], bytes[3]));
+            vec.push(Prefix::new(ip_addr, length));
+        }
+
+        if vec.len() != 0 {
+            network_layer_reachability_information = Some(vec);
+        }
 
         Ok (
             BGPUpdateMessage {
+                withdrawn_routes: withdrawn_routes,
+                network_layer_reachability_information: network_layer_reachability_information,
                 origin: origin,
                 next_hop: next_hop,
                 multi_exit_disc: multi_exit_disc,

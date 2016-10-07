@@ -45,6 +45,21 @@ impl BGPScanner {
     }
 }
 
+#[derive(Debug)]
+pub struct Prefix {
+    pub ip_addr: IpAddr,
+    pub length: u8,
+}
+
+impl Prefix {
+    fn new(ip_addr: IpAddr, length: u8) -> Prefix {
+        Prefix {
+            ip_addr: ip_addr,
+            length: length,
+        }
+    }
+}
+
 //miscellaneous functions
 fn parse_ipv4_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
     let mut buffer = [0u8; 4];
