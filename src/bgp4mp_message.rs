@@ -1,5 +1,5 @@
 use std::io::{Error, ErrorKind, Read};
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::net::IpAddr;
 
 use byteorder::{BigEndian, ReadBytesExt};
 
@@ -42,8 +42,8 @@ impl BGP4MPMessage {
         //parse ip addresses
         let _address_family = try!(reader.read_u16::<BigEndian>());
         let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match _address_family {
-            1 => (AddressFamily::IpV4, parse_ipv4_address),
-            2 => (AddressFamily::IpV6, parse_ipv6_address),
+            1 => (AddressFamily::IpV4, super::parse_ipv4_address),
+            2 => (AddressFamily::IpV6, super::parse_ipv6_address),
             _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", _address_family))),
         };
 
@@ -89,8 +89,8 @@ impl BGP4MPMessageAs4{
         //parse ip addresses
         let _address_family = try!(reader.read_u16::<BigEndian>());
         let (address_family, parse_ip_address): (AddressFamily, fn(&mut Box<Read>) -> Result<IpAddr, Error>) = match _address_family {
-            1 => (AddressFamily::IpV4, parse_ipv4_address),
-            2 => (AddressFamily::IpV6, parse_ipv6_address),
+            1 => (AddressFamily::IpV4, super::parse_ipv4_address),
+            2 => (AddressFamily::IpV6, super::parse_ipv6_address),
             _ => return Err(Error::new(ErrorKind::Other, format!("unknown address family type '{}'", _address_family))),
         };
 
@@ -147,19 +147,4 @@ impl BGP4MPMessageLocalAs4{
     pub fn parse(reader: &mut Box<Read>) -> Result<BGP4MPMessageLocalAs4, Error> {
         unimplemented!();
     }
-}
-
-//miscellaneous functions
-fn parse_ipv4_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
-    let mut buffer = [0u8; 4];
-    try!(reader.read_exact(&mut buffer));
-    Ok(IpAddr::V4(Ipv4Addr::new(buffer[0], buffer[1], buffer[2], buffer[3])))
-}
-
-fn parse_ipv6_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
-    let mut buffer = [0u16; 8];
-    for i in 0..8 {
-        buffer[i] = try!(reader.read_u16::<BigEndian>());
-    }
-    Ok(IpAddr::V6(Ipv6Addr::new(buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7])))
 }

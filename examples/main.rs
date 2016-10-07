@@ -1,10 +1,10 @@
-extern crate rustmrt;
+extern crate mrt_rs;
 
 use std::fs::File;
 
-use rustmrt::MRTScanner;
-use rustmrt::bgp_message::BGPType;
-use rustmrt::mrt_message::MRTSubType;
+use mrt_rs::MRTScanner;
+use mrt_rs::bgp_message::BGPType;
+use mrt_rs::mrt_message::MRTSubType;
 
 fn main() {
     //open reader

@@ -6,6 +6,9 @@ pub mod mrt_message;
 extern crate byteorder;
 
 use std::io::{Error, Read};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+use byteorder::{BigEndian, ReadBytesExt};
 
 use bgp_message::BGPMessage;
 use mrt_message::MRTMessage;
@@ -40,6 +43,21 @@ impl BGPScanner {
     pub fn scan(&mut self) -> Result<BGPMessage, Error> {
         BGPMessage::parse(&mut self.reader)
     }
+}
+
+//miscellaneous functions
+fn parse_ipv4_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
+    let mut buffer = [0u8; 4];
+    try!(reader.read_exact(&mut buffer));
+    Ok(IpAddr::V4(Ipv4Addr::new(buffer[0], buffer[1], buffer[2], buffer[3])))
+}
+
+fn parse_ipv6_address(reader: &mut Box<Read>) -> Result<IpAddr, Error> {
+    let mut buffer = [0u16; 8];
+    for i in 0..8 {
+        buffer[i] = try!(reader.read_u16::<BigEndian>());
+    }
+    Ok(IpAddr::V6(Ipv6Addr::new(buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7])))
 }
 
 #[cfg(test)]
